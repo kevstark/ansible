@@ -1,6 +1,6 @@
 ---
 - name: Deploy a RPi camera stream
-  hosts: all
+  hosts: cameras
   remote_user: pi
   debugger: on_failed
   # remote_user: user
