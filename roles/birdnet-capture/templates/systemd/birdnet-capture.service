@@ -1,0 +1,13 @@
+[Unit]
+Description=BirdNET Audio Capture Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/srv/birdnet/capture
+WorkingDirectory=/tmp
+
+[Install]
+WantedBy=multi-user.target

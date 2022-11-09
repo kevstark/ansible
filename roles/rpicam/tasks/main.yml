@@ -1,0 +1,22 @@
+---
+- name: Detect the camera hardware status
+  ansible.builtin.shell: raspi-config nonint get_camera
+  register: check_camera
+
+- name: Enable the RPi camera
+  ansible.builtin.command: raspi-config nonint do_camera 0
+  when: check_camera.stdout != "0"
+  become: yes
+  notify: reboot
+
+- name: Detect the camera legacy mode status
+  ansible.builtin.shell: raspi-config nonint get_legacy
+  register: check_legacy
+  when: ansible_facts.distribution_version > "10"
+
+- name: Enable the RPi camera legacy api
+  ansible.builtin.command: raspi-config nonint do_legacy 0
+  when: (ansible_facts.distribution_version > "10") and (check_legacy.stdout != "0")
+  become: yes
+  notify: reboot
+

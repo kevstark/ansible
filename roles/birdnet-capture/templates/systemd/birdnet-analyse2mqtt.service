@@ -1,0 +1,16 @@
+[Unit]
+Description=BirdNET Analyse2MQTT Service
+After=network.target
+After=birdnet-server.service
+BindsTo=birdnet-server.service
+Requires=birdnet-capture.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/srv/birdnet/analyse2mqtt --mqtt-host {{ mqtt_host }} --mqtt-topic '{{ mqtt_topic }}' --path capture --lat {{ lat }} --lon {{ lon }} --sensitivity 1.5
+WorkingDirectory=/tmp/birdnet
+
+[Install]
+WantedBy=multi-user.target

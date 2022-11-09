@@ -1,0 +1,43 @@
+---
+- name: Install apt dependencies
+  ansible.builtin.apt:
+    name:
+      - alsa-utils
+      - ffmpeg
+      - git
+    update_cache: yes
+    state: present
+  become: yes
+
+- name: Clone kahst/BirdNET-Analyser
+  ansible.builtin.git:
+    repo: https://github.com/kahst/BirdNET-Analyzer
+    single_branch: yes
+    depth: 1
+    dest: /srv/birdnet
+  become: yes
+
+- name: Install pip dependencies
+  ansible.builtin.pip:
+    name:
+      - bottle
+      - librosa
+      - tflite-runtime
+    state: present
+    virtualenv: /srv/birdnet/env
+    virtualenv_command: sudo python3.9 -m venv
+  become: yes
+
+- name: Service definition
+  ansible.builtin.template: 
+    src: systemd/birdnet-server.service 
+    dest: /lib/systemd/system/birdnet-server.service
+  become: yes
+
+- name: Service start
+  ansible.builtin.systemd: 
+    daemon_reload: yes 
+    name: birdnet-server
+    state: restarted 
+    enabled: yes
+  become: yes

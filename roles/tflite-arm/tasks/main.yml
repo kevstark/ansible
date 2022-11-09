@@ -1,0 +1,73 @@
+---
+# https://github.com/cloudwiser/TensorFlowLiteRPIZero
+
+- name: Build Essentials
+  ansible.builtin.apt:
+    pkg:
+      - build-essential
+    state: present
+  become: yes
+
+- name: Clone TensorFlow
+  ansible.builtin.git:
+    depth: 1
+    dest: /tmp/tensorflow
+    repo: https://github.com/tensorflow/tensorflow.git
+    single_branch: true
+    version: v1.14.0
+    force: yes
+
+- name: Tensorflow lite dependencies
+  ansible.builtin.shell: 
+    chdir: /tmp/tensorflow
+    cmd: ./tensorflow/lite/tools/make/download_dependencies.sh
+
+- name: Configure the arm6 build script
+  ansible.builtin.template: 
+    src: tensorflow/lite/tools/make/build_rpi_armv6_lib.sh 
+    dest: /tmp/tensorflow/tensorflow/lite/tools/make
+  become: yes
+- name: Configure the arm6 Makefile
+  ansible.builtin.template: 
+    src: tensorflow/lite/tools/make/Makefile 
+    dest: /tmp/tensorflow/tensorflow/lite/tools/make
+  become: yes
+
+- name: Configure the arm6 rpi_makefile.inc
+  ansible.builtin.template: 
+    src: tensorflow/lite/tools/make/target/rpi_makefile.inc 
+    dest: /tmp/tensorflow/tensorflow/lite/tools/make/target
+  become: yes
+
+- name: Expand the swapfile
+  ansible.builtin.template: 
+    src: etc/dphys-swapfile 
+    dest: /etc
+  vars:
+    SIZE_MB: 2048
+  become: yes
+- name: Stop dphys-swapfile
+  ansible.builtin.shell: /etc/init.d/dphys-swapfile stop
+  become: yes
+- name: Start dphys-swapfile
+  ansible.builtin.shell: /etc/init.d/dphys-swapfile start
+  become: yes
+
+- name: Tensorflow build
+  ansible.builtin.shell: 
+    chdir: /tmp/tensorflow
+    cmd: ./tensorflow/lite/tools/make/build_rpi_lib.sh
+
+- name: Shrink the swapfile
+  ansible.builtin.template: 
+    src: etc/dphys-swapfile 
+    dest: /etc
+  vars:
+    SIZE_MB: 100
+  become: yes
+- name: Stop dphys-swapfile
+  ansible.builtin.shell: /etc/init.d/dphys-swapfile stop
+  become: yes
+- name: Start dphys-swapfile
+  ansible.builtin.shell: /etc/init.d/dphys-swapfile start
+  become: yes

@@ -1,0 +1,50 @@
+---
+- name: Install apt dependencies
+  ansible.builtin.apt:
+    name:
+      - alsa-utils
+    update_cache: yes
+    state: present
+  become: yes
+
+- name: Recording service configuration
+  ansible.builtin.template: 
+    src: birdnet/capture
+    dest: /srv/birdnet/capture
+    mode: +x
+  become: yes
+
+- name: Recording service definition
+  ansible.builtin.template: 
+    src: systemd/birdnet-capture.service 
+    dest: /lib/systemd/system/birdnet-capture.service
+  become: yes
+
+- name: Recording service start
+  ansible.builtin.systemd: 
+    daemon_reload: yes 
+    name: birdnet-capture
+    state: restarted 
+    enabled: yes
+  become: yes
+
+- name: Analyse to MQTT service configuration
+  ansible.builtin.template: 
+    src: birdnet/analyse2mqtt
+    dest: /srv/birdnet/analyse2mqtt
+    mode: +x
+  become: yes
+
+- name: Analyse to MQTT service definition
+  ansible.builtin.template: 
+    src: systemd/birdnet-analyse2mqtt.service 
+    dest: /lib/systemd/system/birdnet-analyse2mqtt.service
+  become: yes
+
+- name: Analyse to MQTT service start
+  ansible.builtin.systemd: 
+    daemon_reload: yes 
+    name: birdnet-analyse2mqtt
+    state: restarted 
+    enabled: yes
+  become: yes

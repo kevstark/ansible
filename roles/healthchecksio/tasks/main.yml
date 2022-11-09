@@ -1,0 +1,6 @@
+---
+- name: Report to healthchecks.io
+  ansible.builtin.cron:
+    name: "Healthchecks.io"
+    minute: "*"
+    job: "curl -fsS -m 10 --retry 5 -o /dev/null {{ healthcheck_url }}"

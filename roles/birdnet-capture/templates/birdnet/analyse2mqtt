@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+
+import os
+from pathlib import Path
+import time
+import json
+import requests
+import paho.mqtt.client as mqtt
+import argparse
+
+
+def sendRequest(host, port, fpath, mdata):
+
+    url = 'http://{}:{}/analyze'.format(host, port)
+
+    print('Requesting analysis for {}'.format(fpath))
+
+    # Make payload
+    multipart_form_data = {
+        'audio': (fpath.split(os.sep)[-1], open(fpath, 'rb')),
+        'meta': (None, mdata)
+    }
+
+    # Send request
+    start_time = time.time()
+    response = requests.post(url, files=multipart_form_data)
+    end_time = time.time()
+
+    print('Response: {}, Time: {:.4f}s'.format(
+        response.text,
+        end_time - start_time
+    ), flush=True)
+
+    # Convert to dict
+    data = json.loads(response.text)
+
+    return data
+
+
+def scan_dir(path, pattern="*.wav", skip_latest=True):
+    """Return all files in the path matching pattern."""
+    files = [x for x in Path(path).glob(pattern) if x.is_file()]
+    files = sorted(files, reverse=True)
+    if skip_latest:
+        files = files[1:]
+    return files
+
+
+if __name__ == '__main__':
+
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="""Watch a local directory of audio snippets and post detections to MQTT topic.""")
+    parser.add_argument('--birdnet-host', default='localhost', help='Host name or IP address of BirdNET API endpoint server.')   
+    parser.add_argument('--birdnet-port', type=int, default=8080, help='Port of BirdNET API endpoint server.')     
+    parser.add_argument('--mqtt-host', default='localhost', help='Host name or IP address of MQTT endpoint server.')   
+    parser.add_argument('--mqtt-port', type=int, default=1883, help='Port of MQTT endpoint server.')     
+    parser.add_argument('--mqtt-topic', type=str, default='birdnet/detection', help='Birdnet mqtt topic to post on.')     
+    parser.add_argument('--path', default='example/', help='Path to watch for new files.')  
+    parser.add_argument('--pattern', default='*.wav', help='Files matching pattern will be analysed.')  
+    parser.add_argument('--lat', type=float, default=-1, help='Recording location latitude. Set -1 to ignore.')
+    parser.add_argument('--lon', type=float, default=-1, help='Recording location longitude. Set -1 to ignore.')
+    parser.add_argument('--week', type=int, default=-1, help='Week of the year when the recording was made. Values in [1, 48] (4 weeks per month). Set -1 for year-round species list.')
+    parser.add_argument('--overlap', type=float, default=2.0, help='Overlap of prediction segments. Values in [0.0, 2.9]. Defaults to 0.0.')
+    parser.add_argument('--sensitivity', type=float, default=1.5, help='Detection sensitivity; Higher values result in higher sensitivity. Values in [0.5, 1.5]. Defaults to 1.0.')
+    parser.add_argument('--pmode', default='max', help='Score pooling mode. Values in [\'avg\', \'max\']. Defaults to \'avg\'.')   
+    #parser.add_argument('--num_results', type=int, default=5, help='Number of results per request. Defaults to 5.')
+    #parser.add_argument('--sf_thresh', type=float, default=0.03, help='Minimum species occurrence frequency threshold for location filter. Values in [0.01, 0.99]. Defaults to 0.03.')
+    #parser.add_argument('--save', type=bool, default=False, help='Define if files should be stored on server. Values in [True, False]. Defaults to False.')    
+
+    args = parser.parse_args()
+
+    mqttc = mqtt.Client("BirdNet")
+    mqttc.connect(args.mqtt_host)
+
+    # Make metadata
+    meta = {
+        'lat': args.lat,
+        'lon': args.lon,
+        'week': args.week,
+        'overlap': args.overlap,
+        'sensitivity': args.sensitivity,
+        'sf_thresh': 0.03,
+        'pmode': args.pmode,
+        'num_results': 3,
+        'save': False
+    }
+    while True:
+        while True:
+            files = scan_dir(args.path, args.pattern)
+            if len(files) == 0:
+                time.sleep(1)
+            else:
+                break
+
+        # Send request
+        data = sendRequest(
+            args.birdnet_host,
+            args.birdnet_port,
+            str(files[0]),
+            json.dumps(meta)
+        )
+
+        data['filename'] = Path(files[0]).stem
+        data['skipped'] = len(files) - 1
+        data['oldest'] = Path(files[-1]).stem
+
+        mqttc.publish(args.mqtt_topic, json.dumps(data))
+
+        # Delete all skipped & processed files
+        [Path(x).unlink(missing_ok=True) for x in files]

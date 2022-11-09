@@ -1,0 +1,53 @@
+---
+- name: Detect the v4l2rtspserver install
+  ansible.builtin.shell: which v4l2rtspserver || /bin/true
+  register: v4l2rtspserver_check
+
+- name: Install prerequisites
+  ansible.builtin.apt:
+    pkg:
+      - cmake
+      - liblog4cpp5-dev
+      - libv4l-dev
+      - git
+    state: latest
+  become: yes
+  when: v4l2rtspserver_check.stdout == ""
+
+- name: Clone mpromonet/v4l2rtspserver
+  ansible.builtin.git:
+    repo: 'https://github.com/mpromonet/v4l2rtspserver.git'
+    dest: /tmp/v4l2rtspserver
+    depth: 1
+    single_branch: yes
+    update: yes
+    version: v0.3.3
+  when: v4l2rtspserver_check.stdout == ""
+
+- name: Configure make
+  ansible.builtin.command: cmake .
+  args:
+    chdir: /tmp/v4l2rtspserver
+    creates: /tmp/v4l2rtspserver/CMakeCache.txt
+  when: v4l2rtspserver_check.stdout == ""
+
+- name: Build the default target
+  community.general.make:
+    chdir: /tmp/v4l2rtspserver
+  when: v4l2rtspserver_check.stdout == ""
+
+- name: Run 'install' target as root
+  community.general.make:
+    chdir: /tmp/v4l2rtspserver
+    target: install
+  become: yes
+  when: v4l2rtspserver_check.stdout == ""
+
+- name: Configure the streaming service
+  ansible.builtin.template: src=v4l2rtspserver.service dest=/lib/systemd/system/v4l2rtspserver.service
+  become: yes
+  notify: reboot
+
+- name: Enable the streaming service
+  service: name=v4l2rtspserver state=restarted enabled=yes
+  become: yes

@@ -1,0 +1,14 @@
+---
+- name: Deploy a BirdNET MQTT Monitor
+  hosts: birdnet
+  #debugger: on_failed
+  # remote_user: user
+  # become: yes
+  # become_method: sudo
+
+  roles:
+    - healthchecksio
+    - psmqtt
+    - python39
+    - birdnet-server
+    - birdnet-capture

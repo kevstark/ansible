@@ -1,0 +1,13 @@
+[Unit]
+Description=BirdNET Analyser Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/srv/birdnet/env/bin/python server.py --host localhost
+WorkingDirectory=/srv/birdnet/
+
+[Install]
+WantedBy=multi-user.target

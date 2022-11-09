@@ -1,0 +1,15 @@
+---
+- name: Deploy a RPi camera stream
+  hosts: all
+  remote_user: pi
+  debugger: on_failed
+  # remote_user: user
+  # become: yes
+  # become_method: sudo
+
+  roles:
+    - common
+    - rpicam
+    - v4l2rtspserver
+    - healthchecksio
+    - psmqtt

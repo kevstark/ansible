@@ -1,0 +1,13 @@
+---
+- name: Update OS and packages
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  become: yes
+
+- name: Install common packages
+  ansible.builtin.apt:
+    pkg:
+      - screen
+    state: present
+  become: yes

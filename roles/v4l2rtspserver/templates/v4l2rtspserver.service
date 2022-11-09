@@ -1,0 +1,13 @@
+[Unit]
+Description=V4L2 RTSP server
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/usr/local/bin/v4l2rtspserver {{ v4l2server_image }} -P 8554 /dev/video0
+WorkingDirectory=/usr/local/share/v4l2rtspserver
+
+[Install]
+WantedBy=multi-user.target

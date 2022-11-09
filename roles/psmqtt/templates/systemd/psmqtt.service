@@ -1,0 +1,13 @@
+[Unit]
+Description=PSMQTT Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=python3 psmqtt.py
+WorkingDirectory=/srv/psmqtt/
+
+[Install]
+WantedBy=multi-user.target

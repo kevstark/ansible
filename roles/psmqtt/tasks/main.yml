@@ -1,0 +1,31 @@
+---
+- name: Clone eschava/psmqtt
+  ansible.builtin.git:
+    depth: 1
+    dest: /srv/psmqtt
+    repo: https://github.com/eschava/psmqtt.git
+    single_branch: true
+    force: yes
+  become: true
+
+- name: Install dependencies
+  ansible.builtin.pip: 
+    chdir: /srv/psmqtt
+    requirements: requirements.txt
+    executable: pip3
+  become: yes
+
+- name: Configuration
+  ansible.builtin.copy: 
+    src: psmqtt/psmqtt.conf
+    dest: /srv/psmqtt
+  become: yes
+
+- name: Service definition
+  ansible.builtin.template: src=systemd/psmqtt.service dest=/lib/systemd/system/psmqtt.service
+  become: yes
+  notify: reboot
+
+- name: Service start
+  service: name=psmqtt state=restarted enabled=yes
+  become: yes
