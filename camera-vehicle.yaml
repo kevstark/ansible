@@ -1,0 +1,12 @@
+---
+- name: RPi vehicle detection
+  hosts: rpi0w2207
+  remote_user: pi
+  debugger: on_failed
+  # remote_user: user
+  # become: yes
+  # become_method: sudo
+
+  roles:
+    #- common
+    - tflite-arm
