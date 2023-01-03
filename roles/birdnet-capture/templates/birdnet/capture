@@ -5,4 +5,4 @@ mkdir -p birdnet/capture
 # Sleep until top-of-minute
 sleep $((60 - $(date +%S) )) &&
 # Start recording audio to rolling timestamped files
-arecord -f S16_LE -r 44100 --max-file-time 5 -D "{{ capture_device }}" -c 1 --use-strftime birdnet/capture/%Y%m%dT%H%M%S$(date '+%z').wav
+arecord -f S16_LE -r {{ capture_rate }} --max-file-time 5 -D "{{ capture_device }}" -c {{ capture_channels }} --use-strftime birdnet/capture/%Y%m%dT%H%M%S$(date '+%z').wav

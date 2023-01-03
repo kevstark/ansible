@@ -1,6 +1,6 @@
 ---
-- name: Deploy a RPi camera stream
-  hosts: cameras
+- name: RPi camera taking singular high-res images and pushing to remote backup 
+  hosts: camera-push
   remote_user: pi
   debugger: on_failed
   # remote_user: user
@@ -10,6 +10,5 @@
   roles:
     - common
     - rpicam
-    - v4l2rtspserver
     - healthchecksio
     - psmqtt

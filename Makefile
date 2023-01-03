@@ -6,7 +6,8 @@ help: ## This help.
 all: cameras birdnet ## Deploy all applications
 
 cameras:	## Streaming cameras
-	ansible-playbook -i hosts.yaml cameras.yaml
+#	ansible-playbook -i hosts.yaml camera-stream.yaml
+	ansible-playbook -i hosts.yaml camera-push.yaml
 
 birdnet: 	## BirdNET sensors
 	ansible-playbook -i hosts.yaml birdnet.yaml

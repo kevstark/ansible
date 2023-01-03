@@ -1,4 +1,12 @@
 ---
+- name: Install apt dependencies
+  ansible.builtin.apt:
+    pkg:
+      - python3-pip
+      - python3-picamera
+    state: present
+  become: yes
+
 - name: Detect the camera hardware status
   ansible.builtin.shell: raspi-config nonint get_camera
   register: check_camera
@@ -19,4 +27,3 @@
   when: (ansible_facts.distribution_version > "10") and (check_legacy.stdout != "0")
   become: yes
   notify: reboot
-

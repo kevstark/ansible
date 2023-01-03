@@ -1,4 +1,12 @@
 ---
+- name: Install apt dependencies
+  ansible.builtin.apt:
+    pkg:
+      - git
+      - python3-pip
+    state: present
+  become: yes
+
 - name: Clone eschava/psmqtt
   ansible.builtin.git:
     depth: 1
@@ -8,7 +16,7 @@
     force: yes
   become: true
 
-- name: Install dependencies
+- name: Install python dependencies
   ansible.builtin.pip: 
     chdir: /srv/psmqtt
     requirements: requirements.txt

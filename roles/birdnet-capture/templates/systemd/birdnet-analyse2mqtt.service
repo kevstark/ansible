@@ -9,7 +9,7 @@ Requires=birdnet-capture.service
 Type=simple
 Restart=always
 RestartSec=5
-ExecStart=/srv/birdnet/analyse2mqtt --mqtt-host {{ mqtt_host }} --mqtt-topic '{{ mqtt_topic }}' --path capture --lat {{ lat }} --lon {{ lon }} --sensitivity 1.5
+ExecStart=/srv/birdnet/analyse2mqtt --mqtt-host {{ mqtt_host }} --mqtt-topic '{{ mqtt_topic }}' --path capture --lat {{ lat }} --lon {{ lon }} --sensitivity {{ sensitivity }}
 WorkingDirectory=/tmp/birdnet
 
 [Install]

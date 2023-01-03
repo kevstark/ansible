@@ -1,13 +1,21 @@
 ---
-- name: Update OS and packages
-  ansible.builtin.apt:
-    name: "*"
-    state: latest
-  become: yes
+# - name: Update OS and packages
+#   ansible.builtin.apt:
+#     name: "*"
+#     state: latest
+#   become: yes
 
 - name: Install common packages
   ansible.builtin.apt:
     pkg:
+      - git
+      - python3-pip
       - screen
+      - unattended-upgrades
     state: present
   become: yes
+
+- name: dpkg-reconfigure -f noninteractive unattended-upgrades
+  command:
+    cmd: dpkg-reconfigure -f noninteractive unattended-upgrades
+    creates: /etc/apt/apt.conf.d/20auto-upgrades
